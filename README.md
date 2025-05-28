@@ -27,6 +27,7 @@ Details of simulations and script for the manuscript [_Evolution of functional g
 - 01_sim_AncNe_BGS_btnck_noRecovery.slim
 - 01_slurm_BGS_btnck_noRecovery.sh
 - example of parameter file: params_btnck_ancBGS_h010_sc00001_bt380_rt380_n1_50_n2_0_gt_0_mig_0_20Mb.sh
+
 <br>
 
 
@@ -60,6 +61,8 @@ TCU=$(sbatch -p ${partition} --cpus-per-task=${cpuT} --parsable --array=${toRUN}
 echo "${anc}: $TCU; md: $full_model"; echo "jid: $TCU; pt: ${partition}; cpuT: ${cpuT}; mCPU: ${memC}; array: ${toRUN}; time: ${timeLIM}; md: $model";squeue --me | grep $TCU
 ```
 <br>
+
+
 [back to top &uarr;](#bgs_w_btnck)
 
 
@@ -77,9 +80,12 @@ Used to obtain:
 - [Figure 2](./MainFigures/Fig2@Vector.svg)
 - [Figure 3](./MainFigures/Fig3@Vector.svg)
 - [Figure 4](./MainFigures/Fig4@Vector.svg)
+  
+
 <br>
+
 [back to top &uarr;](#bgs_w_btnck)
-<br>
+
 
 <hr>
 
@@ -113,8 +119,11 @@ done
 
 ```
 <br>
+
 Data output sample: [mutCountsALL_wID_alleleC_gScan_%%](./Intermediate%20Files_CLEAN.md/#1-obtain-number-of-deleterious-mutations-per-genomic-window)
+
 <br>
+
 [back to top &uarr;](#bgs_w_btnck)
 
 <hr>
@@ -237,10 +246,12 @@ done
 ## 5. Proportion data relative to the number of deleterious mutations within feature (produces Figure 5)
 <br>
 Scripts:
-- calculation: 0v2.2_onlyOpenData_MultiModel.R
-- plotting: 0v2.6_onlyPDF_PropPlot_MultiModel_withTroughWhite.R
-- save data: 0v2.5_write2File_PropPlot_MultiModel.R
+- calculation: 0v2.2_onlyOpenData_MultiModel.R &nbsp;
+- plotting: 0v2.6_onlyPDF_PropPlot_MultiModel_withTroughWhite.R &nbsp;
+- save data: 0v2.5_write2File_PropPlot_MultiModel.R &nbsp;
+
 <br>
+
 Data sample: [propTable_%s_%s_%sMb.txt](./Intermediate%20Files_CLEAN.md/#1b1-proportion-table-used-to-produce-figure-5)
 
 <br>
