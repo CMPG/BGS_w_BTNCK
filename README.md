@@ -1,9 +1,11 @@
 # BGS_w_BTNCK
 
 Details of simulations and script for the manuscript [_Evolution of functional genomic diversity during a bottleneck_]()
-&nbsp;
+<br>
+
 **REF.:**
-&nbsp;
+
+<br>
 
 - [BGS\_w\_BTNCK](#bgs_w_btnck)
   - [0. SLiM simulations](#0-slim-simulations)
@@ -22,6 +24,7 @@ Details of simulations and script for the manuscript [_Evolution of functional g
 **slurm** script to get propper cluster resourses ➡️ **bash** (apply correct **param file**) ➡️ **slim** script
 
 &nbsp;
+<br>
 
 <!-- ➡️▶️ -->
 
@@ -29,6 +32,7 @@ Details of simulations and script for the manuscript [_Evolution of functional g
 - 01_sim_AncNe_BGS_btnck_noRecovery.slim
 - 01_slurm_BGS_btnck_noRecovery.sh
 - example of parameter file: params_btnck_ancBGS_h010_sc00001_bt380_rt380_n1_50_n2_0_gt_0_mig_0_20Mb.sh
+<br>
 
 
 ```sh
@@ -61,6 +65,7 @@ TCU=$(sbatch -p ${partition} --cpus-per-task=${cpuT} --parsable --array=${toRUN}
 echo "${anc}: $TCU; md: $full_model"; echo "jid: $TCU; pt: ${partition}; cpuT: ${cpuT}; mCPU: ${memC}; array: ${toRUN}; time: ${timeLIM}; md: $model";squeue --me | grep $TCU
 ```
 &nbsp;
+<br>
 
 [back to top &uarr;](#bgs_w_btnck)
 
@@ -70,17 +75,21 @@ echo "${anc}: $TCU; md: $full_model"; echo "jid: $TCU; pt: ${partition}; cpuT: $
 
 ## 1. Trough Statistics
 Data Analisys obtaining trough statitics and relative diversity loss were previously detailed here: https://github.com/CMPG/genomicSurfing (items 2.1 through 2.5).
-&nbsp;
+<br>
+
 Very briefly, it uses VCF files sampled during simulation to window the genome and calculate diversity; Then separates the information on troughs (based on levels of ancestral diversity) and summarizes them over time.
-&nbsp;
-Used to obtain:&nbsp;
+<br>
+
+Used to obtain:
 - [Figure 1](./MainFigures/Fig1@Vector.svg)
 - [Figure 2](./MainFigures/Fig2@Vector.svg)
 - [Figure 3](./MainFigures/Fig3@Vector.svg)
 - [Figure 4](./MainFigures/Fig4@Vector.svg)
-&nbsp;
+<br>
+
 [back to top &uarr;](#bgs_w_btnck)
-&nbsp;
+<br>
+
 
 ## 2. s(b11): Obtain table with Number of mutations per genomic window
 
