@@ -244,8 +244,11 @@ done
 <hr>
 
 ## 5. Proportion data relative to the number of deleterious mutations within feature (produces Figure 5)
+
 <br>
-Scripts:
+
+Scripts: &nbsp;
+
 - calculation: 0v2.2_onlyOpenData_MultiModel.R &nbsp;
 - plotting: 0v2.6_onlyPDF_PropPlot_MultiModel_withTroughWhite.R &nbsp;
 - save data: 0v2.5_write2File_PropPlot_MultiModel.R &nbsp;
