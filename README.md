@@ -1,7 +1,9 @@
 # BGS_w_BTNCK
 
 Details of simulations and script for the manuscript [_Evolution of functional genomic diversity during a bottleneck_]()
+&nbsp;
 **REF.:**
+&nbsp;
 
 - [BGS\_w\_BTNCK](#bgs_w_btnck)
   - [0. SLiM simulations](#0-slim-simulations)
@@ -18,6 +20,8 @@ Details of simulations and script for the manuscript [_Evolution of functional g
 ## 0. SLiM simulations
 
 **slurm** script to get propper cluster resourses ➡️ **bash** (apply correct **param file**) ➡️ **slim** script
+
+&nbsp;
 
 <!-- ➡️▶️ -->
 
@@ -56,24 +60,27 @@ full_model="btnck_${anc}_sc${sc}_bt${bt}_rt${rt}_n1_${n1}_n2_${n2}_gt_${gt}_mig_
 TCU=$(sbatch -p ${partition} --cpus-per-task=${cpuT} --parsable --array=${toRUN} --mem-per-cpu=${memC}G --time=${timeLIM} ${script_01} ${full_model} ${num_samples} ${suffix})
 echo "${anc}: $TCU; md: $full_model"; echo "jid: $TCU; pt: ${partition}; cpuT: ${cpuT}; mCPU: ${memC}; array: ${toRUN}; time: ${timeLIM}; md: $model";squeue --me | grep $TCU
 ```
+&nbsp;
+
 [back to top &uarr;](#bgs_w_btnck)
 
 
 
-
+-------------------------------
 
 ## 1. Trough Statistics
 Data Analisys obtaining trough statitics and relative diversity loss were previously detailed here: https://github.com/CMPG/genomicSurfing (items 2.1 through 2.5).
+&nbsp;
 Very briefly, it uses VCF files sampled during simulation to window the genome and calculate diversity; Then separates the information on troughs (based on levels of ancestral diversity) and summarizes them over time.
-
-Used to obtain:
+&nbsp;
+Used to obtain:&nbsp;
 - [Figure 1](./MainFigures/Fig1@Vector.svg)
 - [Figure 2](./MainFigures/Fig2@Vector.svg)
 - [Figure 3](./MainFigures/Fig3@Vector.svg)
 - [Figure 4](./MainFigures/Fig4@Vector.svg)
-
+&nbsp;
 [back to top &uarr;](#bgs_w_btnck)
-
+&nbsp;
 
 ## 2. s(b11): Obtain table with Number of mutations per genomic window
 
