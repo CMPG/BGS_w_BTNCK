@@ -20,4 +20,4 @@ num_samples=40
 shapePAR=0.00
 BI_tf_folder='BGS_burn_in_tree_files_h010'
 BI_folder='BGS_burnin_h010_20Mb_tree_files'
-sim_file='01_sim_AncNe_BGS_btnck_h010_noRecovery.slim'
+sim_file='01_sim_AncNe_BGS_btnck_noRecovery.slim'

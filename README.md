@@ -1,6 +1,10 @@
 # BGS_w_BTNCK
 
+Details of simulations and script for the manuscript [_Evolution of functional genomic diversity during a bottleneck_]()
+**REF.:**
+
 - [BGS\_w\_BTNCK](#bgs_w_btnck)
+  - [0. SLiM simulations](#0-slim-simulations)
   - [1. Trough Statistics](#1-trough-statistics)
   - [2. s(b11): Obtain table with Number of mutations per genomic window](#2-sb11-obtain-table-with-number-of-mutations-per-genomic-window)
   - [3. s(b12) narrow down counts to either feature](#3-sb12-narrow-down-counts-to-either-feature)
@@ -9,6 +13,52 @@
   - [4. Bootstrap feature mutation count](#4-bootstrap-feature-mutation-count)
   - [5. Proportion data relative to the number of deleterious mutations within feature (produces Figure 5)](#5-proportion-data-relative-to-the-number-of-deleterious-mutations-within-feature-produces-figure-5)
 - [Main figures](#main-figures)
+
+
+## 0. SLiM simulations
+
+**slurm** script to get propper cluster resourses ➡️ **bash** (apply correct **param file**) ➡️ **slim** script
+
+<!-- ➡️▶️ -->
+
+- 01_run_BGS_btnck_noRecovery.sh
+- 01_sim_AncNe_BGS_btnck_noRecovery.slim
+- 01_slurm_BGS_btnck_noRecovery.sh
+- example of parameter file: params_btnck_ancBGS_h010_sc00001_bt380_rt380_n1_50_n2_0_gt_0_mig_0_20Mb.sh
+
+
+```sh
+
+suffix="h010"
+sc="0015"
+partition="bdw-invest"
+cpuT=1
+memC=5
+toRUN="1-100"
+timeLIM="05:59:59"
+chrL=20
+
+cd /storage/homefs/$USER/fwd_bottleneck
+mkdir -p log_sim01
+
+bt=380
+rt=380
+n1=50
+n2=0
+gt=0
+mig=0
+
+num_samples=40
+
+script_01=01_slurm_BGS_btnck_noRecovery.sh
+anc=ancBGS_${suffix} # <------ #
+full_model="btnck_${anc}_sc${sc}_bt${bt}_rt${rt}_n1_${n1}_n2_${n2}_gt_${gt}_mig_${mig}_${chrL}Mb"
+TCU=$(sbatch -p ${partition} --cpus-per-task=${cpuT} --parsable --array=${toRUN} --mem-per-cpu=${memC}G --time=${timeLIM} ${script_01} ${full_model} ${num_samples} ${suffix})
+echo "${anc}: $TCU; md: $full_model"; echo "jid: $TCU; pt: ${partition}; cpuT: ${cpuT}; mCPU: ${memC}; array: ${toRUN}; time: ${timeLIM}; md: $model";squeue --me | grep $TCU
+```
+[back to top &uarr;](#bgs_w_btnck)
+
+
 
 
 
@@ -28,7 +78,7 @@ Used to obtain:
 ## 2. s(b11): Obtain table with Number of mutations per genomic window
 
 Uses genomic profiles and VCF files to count mutations within genomic windows
-scripts: b11_slurm_getMasterTableAlleleC.sh ⏭ b11_getMasterTable_alleleC_mutsC.R
+scripts: b11_slurm_getMasterTableAlleleC.sh ➡️ b11_getMasterTable_alleleC_mutsC.R
 
 Command:
 ```sh
@@ -61,7 +111,7 @@ Data output sample: [mutCountsALL_wID_alleleC_gScan_%%](./Intermediate%20Files_C
 ## 3. s(b12) narrow down counts to either feature
 
 Isolates data from either feature (based on ancestral levels of diversity) and combines it with mutaion count data (item 2)
-Scripts: b12_slurm_getIlhasTroughs_countMuts.sh ⏭ b12_getIlhasTroughs_countMuts.R
+Scripts: b12_slurm_getIlhasTroughs_countMuts.sh ➡️ b12_getIlhasTroughs_countMuts.R
 Also summarises data per replicate and generation
 Data output sample: 
 - RAW: [ilhasOfDiv](./Intermediate%20Files_CLEAN.md/#1a-islands-of-diversity)
