@@ -1,0 +1,341 @@
+// 01_sim_AncNe_BGS_btnck_GetFit_noRecovery.slim
+initialize() {
+	// Constants for mutation rates and proportions
+	defineConstant("start", clock()); // start time for tracking
+	defineConstant("ntMut", 1.25e-8); // neutral mutation rate
+	defineConstant("combMut", 1.36e-8); // combined mutation rate for functional regions
+	defineConstant("ntProp", 1.25); // proportion of neutral mutations in genic regions
+	defineConstant("nnProp", 0.11); // proportion of non-neutral (deleterious) mutations
+	defineConstant("selDel", asFloat(asString("-0." + asString(selCoefID)))); // selection coefficient from ID
+
+	// Log parameter values
+	catn(asString("ntMut: " + ntMut ));
+	catn(asString("combMut: " + combMut ));
+	catn(asString("ntProp: " + ntProp ));
+	catn(asString("nnProp: " + nnProp ));
+	catn(asString("selDel: " + selDel ));
+	
+	// Set recombination rates for a genome of 2 chromosomes
+	rates = c(1e-8, 0.5, 0.5e-8);
+	ends = c(asInteger((L/2) - 1), asInteger(L/2), asInteger(L-1));
+	initializeRecombinationRate(rates, ends);
+	
+	// Set mutation rates per chromosome
+	initializeMutationRate(c(ntMut, combMut), c(asInteger((L/2) - 1), asInteger(L - 1)));
+	
+	// Define neutral and selected mutation types
+	initializeMutationType("m1", 0.5, "f", 0.0); // m1: neutral mutations
+	if (isDFE == F) {
+		initializeMutationType("m2", dom, "f", (selDel)); // m2: fixed-effect deleterious
+	} else {
+		initializeMutationType("m2", dom, "g", selDel, shapePAR); // m2: gamma DFE deleterious
+	}
+	
+	// Configuration of mutation types
+	m1.convertToSubstitution = T;
+	m1.mutationStackPolicy = "l";
+	m1.color = "blue";
+	m2.convertToSubstitution = T;
+	m2.mutationStackPolicy = "l";
+	m2.color = "red";
+	
+	// Genomic element setup
+	initializeGenomicElementType("g1", m1, 1.0); // purely neutral
+	initializeGenomicElementType("g2", c(m1, m2), c(ntProp, nnProp)); // mixture
+	initializeGenomicElement(g1, 0, asInteger((L/2)-1));
+	initializeGenomicElement(g2, asInteger(L/2),  asInteger(L-1));
+	
+	initializeTreeSeq();
+}
+
+// Load previous burn-in tree sequence and log file source
+s1 1 late () {
+	catn("Loading burn-in tree file...");
+
+	// Assign correct replicate number for file naming
+	if (rep <= 20) {
+		rep_file=(rep);
+	} else {
+		factor = asInteger(rep/20);
+		changed_rep = asInteger(rep - factor*20);
+		if (changed_rep != 0) {
+			rep_file = changed_rep;
+		} else {
+			rep_file = 20;
+		}
+	}
+	
+	file_name = asString(burnin_path + "/out_" + "burnin_btnck_c20_g" + (burn-1) + "_sel_" + (selCoefID) + "_r" + rep_file + ".trees");
+	catn(file_name);
+	sim.readFromPopulationFile(file_name);
+	defineConstant("load_burnin", clock());
+	
+	duration = load_burnin - start;
+	catn(asString("time to load tree file: " + duration));
+	cat("Finished loading burn-in tree file \n");
+	cat("------------------------- \n");
+	cat("sim_rep: " + rep + "\n");
+	cat("burn_rep: " + rep_file + "\n");
+	cat("burn - 1 : " + (burn -1) + "\n");
+	cat("------------------------- \n");
+	catn("Burn-in file successfully loaded.");
+}
+
+// Adds a new subpopulation (p2) to simulate bottleneck and starts migration from p1
+s2 100000 early () {
+
+	catn("Starting bottleneck phase: Generation 100000");
+	cat("------------b4_btneck------------- \n");
+	count = asInteger(p1.individualCount);
+	catn(count);
+	cat("------------------------- \n");
+	
+	sim.addSubpop("p2", btnck_size);
+	p2.setMigrationRates(p1, 1);
+	catn("Bottleneck population (p2) initialized and migration started.");
+	
+	cat("------------aft_btneck------------- \n");
+	count = asInteger(p1.individualCount);
+	catn(count);
+	
+	count = asInteger(p2.individualCount);
+	catn(count);
+	cat("------------------------- \n");
+	
+	// SAMPLE P1 
+	// 		1) a VCF file 
+	file_name=asString(out_path + "/out_gen_" + sim.generation + "_r" + rep + "_ancBGS_sc" + selCoefID + "_" + asInteger((L/(1e6))) + "Mb_p1.vcf");
+	print(file_name);
+	p1.outputVCFSample(asInteger(num_samples), replace=F, outputMultiallelics=T, filePath=file_name, append= F);
+	
+	cat("----------OUT_VCF_SOURCE--------------- \n");
+	catn(file_name);
+	catn("p1 100 gens:" + asString(clock() - start));
+	cat("------------------------- \n");
+
+
+	//		2) mutations file & fitness files
+		to_sample = num_samples;
+
+		inds = p1.sampleIndividuals(asInteger(to_sample));
+		ind_genomes = inds.genomes;
+		ind_index = inds.index;
+		ind_fit = p1.cachedFitness(inds.index);
+		
+		ind_g1 = inds.genome1;
+		ind_g2 = inds.genome2;
+		
+		m2_in_g1 = ind_g1.countOfMutationsOfType(m2);
+		m2_in_g2 = ind_g2.countOfMutationsOfType(m2);
+		
+		msum_g1 = ind_g1.sumOfMutationsOfType(m2);
+		msum_g2 = ind_g2.sumOfMutationsOfType(m2);
+		msumIND = inds.sumOfMutationsOfType(m2);
+		
+		g1_ind_id = ind_g1.individual.index;
+		g2_ind_id = ind_g2.individual.index;
+		
+		nlines = length(inds);
+		tabm = matrix(
+			c(
+			asInteger(ind_index),
+			asInteger(m2_in_g1),
+			asInteger(m2_in_g2),
+			ind_fit,
+            msum_g1,
+            msum_g2,
+            msumIND,
+			asInteger(rep(sim.generation, nlines)),
+			asInteger(rep(rep, nlines))
+			),
+			ncol = 9);
+		
+		for (i in 0:(nlines-1)){
+			writeFile(
+				asString("out_fitness_allGens_nSamp" + nlines + "_p1Fit.txt")
+				, paste(tabm[i,], sep="\t"), T );
+		}
+		
+		tb2 = matrix(
+			c(
+			mean(p2.cachedFitness(NULL)),
+			sim.generation,
+			asInteger(rep)
+			), ncol = 3
+			);
+		
+		writeFile(
+			asString("out_meanPopFitness_p1Fit.txt")
+			, paste(tb2, sep="\t"), T );
+		
+		
+		to_keep = sim.substitutions.mutationType == m2;
+		
+		if (sum(to_keep) > 0) {
+ 		    fml = c(
+		    sim.substitutions.id[to_keep],
+		    sim.substitutions.originGeneration[to_keep],
+		    sim.substitutions.position[to_keep],
+		    sim.substitutions.subpopID[to_keep],
+		    sim.substitutions.selectionCoeff[to_keep],
+		    rep(sim.generation, sum(to_keep)),
+		    rep(asInteger(rep), sum(to_keep))
+		    );
+		
+
+			tb3 = matrix(fml, ncol = 7);
+		    for (i in 0:(sum(to_keep)-1)){
+		    	writeFile(
+		            asString(
+		    	        "out_fixedMuts_r" + rep + "_p1Fit.txt"), 
+                    paste(tb3[i,], sep="\t"), append = T);
+		    }
+		}
+		
+
+		file_name=asString(out_path + "/out_gen_" + sim.generation + "_r" + rep + "_ancBGS_sc" + selCoefID + "_" + asInteger((L/(1e6))) + "Mb_p1Fit.vcf");
+		print(file_name);
+		inds.genomes.outputVCF(filePath = file_name, outputMultiallelics = T, append = F);
+		
+	cat("----------OUT_fitness_SOURCE--------------- \n");
+	catn(file_name);
+	catn("file out after " + asString(clock() - start));
+	cat("------------------------- \n");
+
+
+
+}
+
+
+// Stops migration and removes original population p1
+s3  100001 early () {
+
+	// isolate bottlenecked population (halt migration)
+	p2.setMigrationRates(p1, 0);
+	// kill source: since there is NO recovery, no need for later....
+	p1.setSubpopulationSize(0);
+}
+
+
+// Periodic sampling from bottlenecked population
+s4 100001: early () {
+	//this will only execute when generation is divisible by the sampling interval
+	if ((sim.generation % samp_interval) == 0){
+		
+		if (num_samples > asInteger(p2.individualCount)){
+			to_sample = asInteger(p2.individualCount);
+		} else {
+			to_sample = num_samples;
+		}
+		
+		
+		inds = p2.sampleIndividuals(asInteger(to_sample));
+		// 40);
+		ind_genomes = inds.genomes;
+		ind_index = inds.index;
+		ind_fit = p2.cachedFitness(inds.index);
+		
+		ind_g1 = inds.genome1;
+		ind_g2 = inds.genome2;
+		
+		m2_in_g1 = ind_g1.countOfMutationsOfType(m2);
+		m2_in_g2 = ind_g2.countOfMutationsOfType(m2);
+		
+		msum_g1 = ind_g1.sumOfMutationsOfType(m2);
+		msum_g2 = ind_g2.sumOfMutationsOfType(m2);
+		msumIND = inds.sumOfMutationsOfType(m2);
+		// msum_g1 + msum_g2 == msumIND;
+		
+		g1_ind_id = ind_g1.individual.index;
+		g2_ind_id = ind_g2.individual.index;
+		
+		nlines = length(inds);
+		tabm = matrix(
+			c(
+			asInteger(ind_index),
+			// asInteger(g1_ind_id),
+			asInteger(m2_in_g1),
+			// asInteger(g2_ind_id),
+			asInteger(m2_in_g2),
+			ind_fit,
+            msum_g1,
+            msum_g2,
+            msumIND,
+			asInteger(rep(sim.generation, nlines)),
+			asInteger(rep(rep, nlines))
+			),
+			ncol = 9);
+		
+		for (i in 0:(nlines-1)){
+			writeFile(
+				asString("out_fitness_allGens_nSamp" + nlines + ".txt")
+				, paste(tabm[i,], sep="\t"), T );
+		}
+		
+		tb2 = matrix(
+			c(
+			mean(p2.cachedFitness(NULL)),
+			sim.generation,
+			asInteger(rep)
+			), ncol = 3
+			);
+		
+		writeFile(
+			asString("out_meanPopFitness.txt")
+			, paste(tb2, sep="\t"), T );
+		
+
+		
+		to_keep = sim.substitutions.mutationType == m2;
+		
+		if (sum(to_keep) > 0) {
+ 		    fml = c(
+		    sim.substitutions.id[to_keep],
+		    sim.substitutions.originGeneration[to_keep],
+		    sim.substitutions.position[to_keep],
+		    sim.substitutions.subpopID[to_keep],
+		    sim.substitutions.selectionCoeff[to_keep],
+		    rep(sim.generation, sum(to_keep)),
+		    rep(asInteger(rep), sum(to_keep))
+		    );
+		
+
+			tb3 = matrix(fml, ncol = 7);
+		    for (i in 0:(sum(to_keep)-1)){
+		    	writeFile(
+		            asString(
+		    	        "out_fixedMuts_r" + rep + ".txt"), 
+                    paste(tb3[i,], sep="\t"), append = T);
+		    }
+		}
+		
+		
+		file_name=asString(out_path + "/out_gen_" + sim.generation + "_r" + rep + "_ancBGS_sc" + selCoefID + "_" + asInteger((L/(1e6))) + "Mb_p2.vcf");
+		print(file_name);
+		inds.genomes.outputVCF(filePath = file_name, outputMultiallelics = T, append = F);
+		
+
+	}
+}
+
+
+// End simulation and log total runtime
+s7 100002:100500 late(){
+
+	if (sim.generation == asInteger(gen_end_recovery)){
+		catn("Final generation reached: Terminating simulation.");
+		cat("------------end_of_recovery------------- \n");
+		catn("current gen: " + sim.generation);
+		catn("p2 size at the end:" + asInteger(p2.individualCount));
+		cat("------------------------- \n");
+		
+		
+		sim.outputUsage();
+		defineConstant("fim", clock());
+		duration = fim - start;
+		catn(asString("sim with total duration of " + duration));
+		sim.simulationFinished();
+		catn("Simulation complete.");
+	}
+}
+
