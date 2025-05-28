@@ -14,7 +14,7 @@
 
 ## 1. Trough Statistics
 Data Analisys obtaining trough statitics and relative diversity loss were previously detailed here: https://github.com/CMPG/genomicSurfing (items 2.1 through 2.5).
-Very briefly, it uses VCF files sampled during simulation to window and calculate diversity; Then separates the information on troughs (based on levels of ancestral diversity) and characterises them in a summary over time.
+Very briefly, it uses VCF files sampled during simulation to window the genome and calculate diversity; Then separates the information on troughs (based on levels of ancestral diversity) and summarizes them over time.
 
 Used to obtain:
 - [Figure 1](./MainFigures/Fig1@Vector.svg)
@@ -70,6 +70,7 @@ Data output sample:
 
 ### 3.1 Islands of Diversity
 
+Command:
 ```sh
 
 variante="h010"
@@ -100,6 +101,7 @@ printf "$TCU\t$selCoef\n"
 
 ### 3.2 Troughs of Diversity
 
+Command:
 ```sh
 
 variante="h010"
@@ -133,6 +135,7 @@ Bootstrap results to produce [Supplementary Figure S8](./MainFigures/SuppFig_S8_
 
 Data output sample: [boot%sx_ILHAS_%s_sc%s_%sMb_%s.txt](./Intermediate%20Files_CLEAN.md/#1a3-bootstrap-summarised-data-1a2)
 
+Command:
 ```sh
 
 selType="10K"
